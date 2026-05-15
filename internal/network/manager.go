@@ -311,7 +311,7 @@ func (m *Manager) startRefresher(ctx context.Context, initialMinTTL uint32) {
 		for {
 			select {
 			case <-timer.C:
-				log.Println("IP refresh: checking for updated IPs...")
+				//log.Println("IP refresh: checking for updated IPs...")
 				newMinTTL, err := m.refreshAllowedIPs()
 				if err != nil {
 					log.Printf("Warning: IP refresh failed: %v", err)
@@ -319,7 +319,7 @@ func (m *Manager) startRefresher(ctx context.Context, initialMinTTL uint32) {
 
 				// Recompute interval from new TTLs
 				nextInterval := m.computeRefreshInterval(newMinTTL)
-				log.Printf("IP refresh: next check in %s", nextInterval)
+				//log.Printf("IP refresh: next check in %s", nextInterval)
 				timer.Reset(nextInterval)
 
 			case <-m.refreshCtx.Done():
@@ -351,13 +351,13 @@ func (m *Manager) refreshAllowedIPs() (uint32, error) {
 
 	// Check if anything changed
 	if m.resolver.IPsUnchanged(newIPs) {
-		log.Println("IP refresh: no changes detected")
+		//log.Println("IP refresh: no changes detected")
 		return newMinTTL, nil
 	}
 
 	// Update firewall rules with new IPs
-	totalIPs := countIPs(newIPs)
-	log.Printf("IP refresh: updating firewall with %d IPs", totalIPs)
+	//totalIPs := countIPs(newIPs)
+	//log.Printf("IP refresh: updating firewall with %d IPs", totalIPs)
 
 	// Apply new rules BEFORE removing old ones to avoid a gap where no rules exist.
 	// firewall-cmd --direct --add-rule is idempotent, so duplicate rules are harmless.
@@ -368,19 +368,19 @@ func (m *Manager) refreshAllowedIPs() (uint32, error) {
 
 	// Now remove all rules (including stale ones) and reapply to clean up
 	if err := m.firewall.RemoveRules(); err != nil {
-		log.Printf("Warning: failed to remove old rules: %v", err)
+		//log.Printf("Warning: failed to remove old rules: %v", err)
 	}
 	if err := m.firewall.ApplyAllowlist(m.config, allowedIPs); err != nil {
-		log.Printf("Warning: failed to reapply rules after cleanup: %v", err)
+		//log.Printf("Warning: failed to reapply rules after cleanup: %v", err)
 	}
 
 	// Update cache
 	m.resolver.UpdateCache(newIPs)
 	if err := m.cacheManager.Save(m.containerName, m.resolver.GetCache()); err != nil {
-		log.Printf("Warning: Failed to save cache: %v", err)
+		//log.Printf("Warning: Failed to save cache: %v", err)
 	}
 
-	log.Printf("IP refresh: successfully updated firewall rules")
+	//log.Printf("IP refresh: successfully updated firewall rules")
 	return newMinTTL, nil
 }
 
