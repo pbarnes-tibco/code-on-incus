@@ -375,19 +375,19 @@ func (m *Manager) startRefresher(ctx context.Context, initialMinTTL uint32) {
 		for {
 			select {
 			case <-timer.C:
-				m.logger.Println("IP refresh: checking for updated IPs...")
+				//m.logger.Println("IP refresh: checking for updated IPs...")
 				newMinTTL, err := m.refreshAllowedIPs()
 				if err != nil {
-					m.logger.Errorf("Warning: IP refresh failed: %v", err)
+					//m.logger.Errorf("Warning: IP refresh failed: %v", err)
 				}
 
 				// Recompute interval from new TTLs
 				nextInterval := m.computeRefreshInterval(newMinTTL)
-				m.logger.Printf("IP refresh: next check in %s", nextInterval)
+				//m.logger.Printf("IP refresh: next check in %s", nextInterval)
 				timer.Reset(nextInterval)
 
 			case <-m.refreshCtx.Done():
-				m.logger.Println("IP refresher stopped")
+				//m.logger.Println("IP refresher stopped")
 				return
 			}
 		}
@@ -415,13 +415,13 @@ func (m *Manager) refreshAllowedIPs() (uint32, error) {
 
 	// Check if anything changed
 	if m.resolver.IPsUnchanged(newIPs) {
-		m.logger.Println("IP refresh: no changes detected")
+		//m.logger.Println("IP refresh: no changes detected")
 		return newMinTTL, nil
 	}
 
 	// Update nft rules with new IPs
-	totalIPs := countIPs(newIPs)
-	m.logger.Printf("IP refresh: updating nft rules with %d IPs", totalIPs)
+	//totalIPs := countIPs(newIPs)
+	//m.logger.Printf("IP refresh: updating nft rules with %d IPs", totalIPs)
 
 	// Replace rules atomically: snapshot old handles, append new rules, then
 	// delete only the old handles. This avoids any window where all rules are
@@ -434,10 +434,10 @@ func (m *Manager) refreshAllowedIPs() (uint32, error) {
 	// Update cache
 	m.resolver.UpdateCache(newIPs)
 	if err := m.cacheManager.Save(m.containerName, m.resolver.GetCache()); err != nil {
-		m.logger.Errorf("Warning: Failed to save cache: %v", err)
+		//m.logger.Errorf("Warning: Failed to save cache: %v", err)
 	}
 
-	m.logger.Printf("IP refresh: successfully updated nft rules")
+	//m.logger.Printf("IP refresh: successfully updated nft rules")
 	return newMinTTL, nil
 }
 
